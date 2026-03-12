@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GOV.AI - Interactive Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Custom Styles for aesthetics and constraints */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (max-width: 640px) {
+            .chart-container { height: 250px; }
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Interactive Card Hover */
+        .hover-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .hover-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased">
+
+    <!-- Chosen Palette: Slate (Neutrals), Emerald (Primary/Action), Blue (Tech/AI) -->
+    <!-- Application Structure Plan: 
+         1. Hero/Intro: Establishes the brand and core mission immediately.
+         2. The Problem: Uses a visual donut chart to highlight the stark contrast between available services and digital literacy.
+         3. The Solution & Impact: Presents the Agentic AI concept and quantifies the socioeconomic benefits using interactive cards.
+         4. Financial Projections: Features an interactive break-even calculator, allowing users to move a slider to see how request volume affects profitability, creating an engaging way to understand the business model.
+         5. Go-To-Market Timeline: A visual stepper for the rollout plan.
+         6. Academic & Research Context: A dedicated section answering the user's prompt by synthesizing research themes on digital literacy, e-gov friction, and Agentic AI scope in Bangladesh.
+         Why this structure? It follows a logical pitch flow (Problem -> Solution -> Business Model -> Execution -> Theoretical Backing) while maximizing user engagement through interactive data exploration rather than static reading. 
+    -->
+    <!-- Visualization & Content Choices: 
+         - Literacy Chart (Donut, Chart.js): Goal is to show proportion; shows 70% low literacy starkly against 30% others.
+         - Financial Chart (Bar, Chart.js): Goal is to compare Revenue vs Total Cost dynamically based on user input. Replaces a static break-even graph with an exploratory tool.
+         - NO SVG/Mermaid used. Reliance on Tailwind utility classes and Unicode emojis for iconography.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <!-- Navigation -->
+    <nav class="fixed w-full bg-white/90 backdrop-blur shadow-sm z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex-shrink-0 flex items-center font-bold text-2xl tracking-tighter text-emerald-700">
+                    🏛️ GOV.AI
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#problem" class="text-slate-600 hover:text-emerald-600 font-medium transition-colors">Problem</a>
+                    <a href="#solution" class="text-slate-600 hover:text-emerald-600 font-medium transition-colors">Solution</a>
+                    <a href="#financials" class="text-slate-600 hover:text-emerald-600 font-medium transition-colors">Financials</a>
+                    <a href="#roadmap" class="text-slate-600 hover:text-emerald-600 font-medium transition-colors">Roadmap</a>
+                    <a href="#research" class="text-slate-600 hover:text-blue-600 font-medium transition-colors">Research Context</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header id="hero" class="pt-32 pb-20 px-4 text-center bg-gradient-to-b from-emerald-50 to-slate-50">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-5xl md:text-6xl font-extrabold text-slate-900 mb-6 tracking-tight">
+                Making Government Services <br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-blue-600">Accessible to Every Citizen</span>
+            </h1>
+            <p class="text-xl text-slate-600 mb-10 max-w-2xl mx-auto">
+                An Agentic AI-powered application that completes complex government service workflows on behalf of users via natural chat or voice.
+            </p>
+            <div class="flex justify-center gap-4">
+                <a href="#problem" class="bg-emerald-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-emerald-700 transition shadow-lg hover:shadow-emerald-200">Explore the Crisis</a>
+                <a href="#financials" class="bg-white text-slate-700 border border-slate-300 px-8 py-3 rounded-full font-semibold hover:bg-slate-50 transition shadow-sm">View Business Model</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Problem Section -->
+    <section id="problem" class="py-20 px-4">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">The Accessibility Crisis</h2>
+                <p class="text-lg text-slate-600 max-w-3xl mx-auto">
+                    Bangladesh currently provides over 800 government services online. However, the complexity of these portals acts as a barrier for the majority of the population.
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                    <h3 class="text-xl font-bold text-slate-800 mb-4 text-center">Digital Literacy in Households</h3>
+                    <div class="chart-container">
+                        <canvas id="literacyChart"></canvas>
+                    </div>
+                    <p class="text-sm text-center text-slate-500 mt-4">Data Source: Gov.AI Pitch Deck (Page 2)</p>
+                </div>
+                
+                <div class="space-y-6">
+                    <div class="flex items-start gap-4 bg-red-50 p-6 rounded-xl border border-red-100">
+                        <div class="text-3xl">📉</div>
+                        <div>
+                            <h4 class="font-bold text-red-800 text-lg">Low Digital Literacy</h4>
+                            <p class="text-red-700">Over 70% of households lack the functional digital literacy required to navigate standard web forms and multi-step verification processes.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4 bg-orange-50 p-6 rounded-xl border border-orange-100">
+                        <div class="text-3xl">🧩</div>
+                        <div>
+                            <h4 class="font-bold text-orange-800 text-lg">Complex Web Portals & UI</h4>
+                            <p class="text-orange-700">Existing infrastructure is built for tech-savvy users, creating friction through convoluted UI, jargon, and rigid input requirements.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4 bg-blue-50 p-6 rounded-xl border border-blue-100">
+                        <div class="text-3xl">🏛️</div>
+                        <div>
+                            <h4 class="font-bold text-blue-800 text-lg">800+ Services Trapped</h4>
+                            <p class="text-blue-700">While the government has digitized heavily, the "last mile" of user interaction remains broken for millions of citizens.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Solution & Impact Section -->
+    <section id="solution" class="py-20 px-4 bg-emerald-800 text-white">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-6">Enter GOV.AI: Agentic Automation</h2>
+                <p class="text-xl text-emerald-100 max-w-3xl mx-auto">
+                    Users simply talk or chat in their natural language. Our Agentic AI understands the intent, gathers required information conversationally, and executes the complex backend workflows automatically.
+                </p>
+            </div>
+
+            <h3 class="text-2xl font-bold text-center mb-10 text-emerald-200">Macro-Economic Impact Potential</h3>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-emerald-700/50 p-8 rounded-2xl border border-emerald-600 hover-card text-center">
+                    <div class="text-5xl mb-4">🚶‍♂️</div>
+                    <h4 class="text-4xl font-black mb-2">2</h4>
+                    <p class="text-emerald-200 font-medium">Physical Trips Saved</p>
+                    <p class="text-sm text-emerald-300 mt-2">Average reduction per service request, mitigating accessibility barriers and reducing local corruption.</p>
+                </div>
+                
+                <div class="bg-emerald-700/50 p-8 rounded-2xl border border-emerald-600 hover-card text-center">
+                    <div class="text-5xl mb-4">⏳</div>
+                    <h4 class="text-4xl font-black mb-2">20M</h4>
+                    <p class="text-emerald-200 font-medium">Workdays Saved</p>
+                    <p class="text-sm text-emerald-300 mt-2">Calculated across 10 million citizens, returning massive amounts of time back to the populace.</p>
+                </div>
+                
+                <div class="bg-emerald-700/50 p-8 rounded-2xl border border-emerald-600 hover-card text-center">
+                    <div class="text-5xl mb-4">💰</div>
+                    <h4 class="text-4xl font-black mb-2">$100M+</h4>
+                    <p class="text-emerald-200 font-medium">Productivity Gain</p>
+                    <p class="text-sm text-emerald-300 mt-2">Direct economic stimulus generated by eliminating wait times and travel requirements for basic civil services.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Financials Interactive Section -->
+    <section id="financials" class="py-20 px-4 bg-white">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Financial Feasibility & Break-Even</h2>
+                <p class="text-lg text-slate-600 max-w-2xl mx-auto">
+                    Explore the business model. Adjust the slider to see how monthly request volumes impact profitability against our fixed operational expenses.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-12 gap-8 bg-slate-50 p-8 rounded-3xl border border-slate-200">
+                
+                <!-- Controls & Stats -->
+                <div class="md:col-span-5 flex flex-col justify-center space-y-8">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                        <label for="volumeSlider" class="block text-sm font-bold text-slate-700 mb-2">
+                            Monthly Service Requests: <span id="volumeDisplay" class="text-emerald-600 text-lg">20,000</span>
+                        </label>
+                        <input type="range" id="volumeSlider" min="0" max="50000" step="1000" value="20000" 
+                               class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600">
+                        <div class="flex justify-between text-xs text-slate-400 mt-2">
+                            <span>0</span>
+                            <span>Target: 20k</span>
+                            <span>50k+</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-white p-4 rounded-xl border border-slate-100">
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Charge / Service</p>
+                            <p class="text-xl font-bold text-slate-800">50 BDT</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl border border-slate-100">
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">COGS / Service</p>
+                            <p class="text-xl font-bold text-slate-800">10 BDT</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl border border-slate-100 col-span-2">
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Fixed OpEx / Month</p>
+                            <p class="text-xl font-bold text-slate-800">800,000 BDT</p>
+                        </div>
+                    </div>
+                    
+                    <div id="profitStatus" class="p-4 rounded-xl font-bold text-center border transition-colors duration-300 bg-slate-200 text-slate-700 border-slate-300">
+                        Break Even Achieved
+                    </div>
+                </div>
+
+                <!-- Chart -->
+                <div class="md:col-span-7 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center">
+                    <h3 class="text-center font-bold text-slate-700 mb-4">Revenue vs. Costs Projection</h3>
+                    <div class="chart-container">
+                        <canvas id="financialChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Go-To-Market Roadmap -->
+    <section id="roadmap" class="py-20 px-4 bg-slate-900 text-white">
+        <div class="max-w-5xl mx-auto">
+            <h2 class="text-3xl font-bold text-center mb-16">Go-To-Market & Feasibility Plan</h2>
+            
+            <div class="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-emerald-500 before:to-transparent">
+                
+                <!-- Prototype -->
+                <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-slate-900 text-emerald-400 font-bold shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
+                        1
+                    </div>
+                    <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-slate-800 p-6 rounded-2xl border border-slate-700 hover:border-emerald-500 transition-colors">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="font-bold text-xl text-emerald-400">PROTOTYPE</h3>
+                            <span class="text-xs font-medium px-2 py-1 bg-slate-700 rounded-full">Months 0-4</span>
+                        </div>
+                        <ul class="space-y-2 text-slate-300 text-sm">
+                            <li>• Focus on 1-2 core services (NID, Birth Certificates)</li>
+                            <li>• Beta testing with a few hundred users</li>
+                            <li>• Estimated Cost: 20 - 40 Lakhs BDT</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Pilot -->
+                <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-slate-900 text-emerald-400 font-bold shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
+                        2
+                    </div>
+                    <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-slate-800 p-6 rounded-2xl border border-slate-700 hover:border-emerald-500 transition-colors">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="font-bold text-xl text-emerald-400">PILOT</h3>
+                            <span class="text-xs font-medium px-2 py-1 bg-slate-700 rounded-full">Months 5-12</span>
+                        </div>
+                        <ul class="space-y-2 text-slate-300 text-sm">
+                            <li>• Expansion to 2-3 districts (Mixed Urban & Rural)</li>
+                            <li>• Scaling to thousands of active users</li>
+                            <li>• Estimated Cost: 1 - 1.5 Crores BDT</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- National Rollout -->
+                <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-slate-900 text-emerald-400 font-bold shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
+                        3
+                    </div>
+                    <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-slate-800 p-6 rounded-2xl border border-slate-700 hover:border-emerald-500 transition-colors">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="font-bold text-xl text-emerald-400">NATIONAL ROLLOUT</h3>
+                            <span class="text-xs font-medium px-2 py-1 bg-slate-700 rounded-full">Months 13-28</span>
+                        </div>
+                        <ul class="space-y-2 text-slate-300 text-sm">
+                            <li>• Full nationwide deployment</li>
+                            <li>• Integration of vast majority of the 800+ services</li>
+                            <li>• Achieving break-even volume (20k+ requests/month)</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Academic & Research Context (Addressing User Request) -->
+    <section id="research" class="py-20 px-4 bg-blue-50">
+        <div class="max-w-6xl mx-auto">
+            <div class="mb-12">
+                <h2 class="text-3xl font-bold text-blue-900 mb-4">📚 Research & Academic Context</h2>
+                <p class="text-lg text-blue-800 max-w-4xl">
+                    To support the premises of Gov.AI, we must look at the broader academic landscape regarding digital literacy in Bangladesh and the theoretical capabilities of Agentic AI in e-governance.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- E-Gov Challenges -->
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-blue-100">
+                    <div class="text-3xl mb-4">📑</div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-3">The Hassle of Gov Documentation</h3>
+                    <p class="text-slate-600 mb-4">
+                        Surveys and studies on Bangladesh's e-governance (e.g., assessing the A2i initiatives) frequently highlight a gap between <strong>infrastructure availability</strong> and <strong>citizen usability</strong>. 
+                    </p>
+                    <ul class="list-disc pl-5 text-sm text-slate-600 space-y-2">
+                        <li><strong>UI/UX Friction:</strong> Legacy portal designs assume a high level of functional literacy.</li>
+                        <li><strong>Bureaucratic Translation:</strong> Citizens often struggle to translate their real-world problems (e.g., "My name is spelled wrong") into the specific administrative forms required (e.g., "Form Kha-2 Amendment Request").</li>
+                        <li><strong>The Intermediary Economy:</strong> Due to this friction, informal (and sometimes corrupt) intermediaries charge citizens to fill out online forms, negating the benefits of digitization.</li>
+                    </ul>
+                </div>
+
+                <!-- Scope of Agentic AI -->
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-blue-100">
+                    <div class="text-3xl mb-4">🤖</div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-3">Scope of Agentic AI (NID/Passports)</h3>
+                    <p class="text-slate-600 mb-4">
+                        Unlike standard chatbots which follow rigid dialogue trees, <strong>Agentic AI</strong> utilizes Large Language Models (LLMs) equipped with tools (APIs) to achieve goals autonomously.
+                    </p>
+                    <ul class="list-disc pl-5 text-sm text-slate-600 space-y-2">
+                        <li><strong>Intent Parsing:</strong> An agent can understand Voice Notes in local dialects (Banglish/Regional Bangla) and extract the exact parameters needed for an NID correction.</li>
+                        <li><strong>Multi-Step Reasoning:</strong> For Passport renewals, the AI can check prerequisite document statuses, notify the user of missing files, and automatically route the payload to the correct regional passport office API.</li>
+                        <li><strong>Bridging the Literacy Gap:</strong> By shifting the interface from "Web Forms" to "Natural Conversation", Agentic AI essentially acts as a hyper-personalized, free, and uncorrupt intermediary.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="mt-8 text-center">
+                <p class="text-sm text-blue-600 italic">Note: While specific peer-reviewed citations require external database access, the concepts above summarize the prevailing academic consensus on ICT4D (Information and Communication Technologies for Development) in South Asia and current LLM agent research.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-8 text-center">
+        <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
+            <p class="font-bold text-emerald-500 mb-4 md:mb-0">🏛️ GOV.AI Team: M.D Alif, Atik Masud, Misha Maleha Ratri, Md. Tahasinur Rahman, Nasrullah Farhan</p>
+            <p class="text-sm">Interactive SPA generated from Source Pitch Deck</p>
+        </div>
+    </footer>
+
+    <!-- Interactive JavaScript Logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- 1. Digital Literacy Donut Chart ---
+            const ctxLiteracy = document.getElementById('literacyChart').getContext('2d');
+            new Chart(ctxLiteracy, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Low Digital Literacy (< 70%)', 'Moderate/High Literacy (30%)'],
+                    datasets: [{
+                        data: [70, 30],
+                        backgroundColor: [
+                            '#ef4444', // Red for problem area
+                            '#10b981'  // Emerald for okay area
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { family: "'Segoe UI', sans-serif" } } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) { return ` ${context.label}: ${context.raw}%`; }
+                            }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+
+            // --- 2. Financial Break-Even Interactive Logic & Chart ---
+            const volumeSlider = document.getElementById('volumeSlider');
+            const volumeDisplay = document.getElementById('volumeDisplay');
+            const profitStatus = document.getElementById('profitStatus');
+            
+            const fixedOpEx = 800000;
+            const pricePerService = 50;
+            const cogsPerService = 10;
+
+            const ctxFinancial = document.getElementById('financialChart').getContext('2d');
+            let financialChart = new Chart(ctxFinancial, {
+                type: 'bar',
+                data: {
+                    labels: ['Financial Overview (BDT)'],
+                    datasets: [
+                        { label: 'Total Revenue', data: [1000000], backgroundColor: '#10b981', borderRadius: 4 },
+                        { label: 'Total Costs (OpEx + COGS)', data: [1000000], backgroundColor: '#ef4444', borderRadius: 4 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Amount (BDT)' } }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.raw.toLocaleString() + ' BDT';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            function updateFinancials() {
+                const volume = parseInt(volumeSlider.value);
+                volumeDisplay.textContent = volume.toLocaleString();
+
+                const revenue = volume * pricePerService;
+                const totalCogs = volume * cogsPerService;
+                const totalCosts = fixedOpEx + totalCogs;
+                const profit = revenue - totalCosts;
+
+                // Update Chart
+                financialChart.data.datasets[0].data = [revenue];
+                financialChart.data.datasets[1].data = [totalCosts];
+                financialChart.update();
+
+                // Update Status Text
+                profitStatus.classList.remove('bg-slate-200', 'text-slate-700', 'border-slate-300', 'bg-emerald-100', 'text-emerald-800', 'border-emerald-200', 'bg-red-100', 'text-red-800', 'border-red-200');
+
+                if (profit > 0) {
+                    profitStatus.textContent = `Profit: +${profit.toLocaleString()} BDT`;
+                    profitStatus.classList.add('bg-emerald-100', 'text-emerald-800', 'border-emerald-200');
+                } else if (profit < 0) {
+                    profitStatus.textContent = `Loss: ${profit.toLocaleString()} BDT`;
+                    profitStatus.classList.add('bg-red-100', 'text-red-800', 'border-red-200');
+                } else {
+                    profitStatus.textContent = `Break Even Achieved (0 BDT)`;
+                    profitStatus.classList.add('bg-slate-200', 'text-slate-700', 'border-slate-300');
+                }
+            }
+
+            // Event Listener for Slider
+            volumeSlider.addEventListener('input', updateFinancials);
+            
+            // Initial call to set state
+            updateFinancials();
+        });
+    </script>
+</body>
+</html>
